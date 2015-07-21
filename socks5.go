@@ -38,6 +38,10 @@ type Config struct {
 
 	// BindIP is used for bind or udp associate
 	BindIP net.IP
+
+	AdvancedServe bool
+
+	AdvancedDial *func
 }
 
 // Server is reponsible for accepting connections and handling

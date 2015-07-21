@@ -83,38 +83,59 @@ func (s *Server) handleRequest(conn conn, bufConn io.Reader) error {
 		return fmt.Errorf("Failed to read destination address: %v", err)
 	}
 
-	// Resolve the address if we have a FQDN
-	if dest.FQDN != "" {
-		addr, err := s.config.Resolver.Resolve(dest.FQDN)
-		if err != nil {
-			if err := sendReply(conn, hostUnreachable, nil); err != nil {
-				return fmt.Errorf("Failed to send reply: %v", err)
+		if s.AdvancedDial == false{
+
+			// Resolve the address if we have a FQDN
+			if dest.FQDN != "" {
+				addr, err := s.config.Resolver.Resolve(dest.FQDN)
+				if err != nil {
+					if err := sendReply(conn, hostUnreachable, nil); err != nil {
+						return fmt.Errorf("Failed to send reply: %v", err)
+					}
+					return fmt.Errorf("Failed to resolve destination '%v': %v", dest.FQDN, err)
+				}
+				dest.IP = addr
 			}
-			return fmt.Errorf("Failed to resolve destination '%v': %v", dest.FQDN, err)
-		}
-		dest.IP = addr
-	}
 
-	// Apply any address rewrites
-	realDest := dest
-	if s.config.Rewriter != nil {
-		realDest = s.config.Rewriter.Rewrite(dest)
-	}
+			// Apply any address rewrites
+			realDest := dest
+			if s.config.Rewriter != nil {
+				realDest = s.config.Rewriter.Rewrite(dest)
+			}
 
-	// Switch on the command
-	switch header[1] {
-	case connectCommand:
-		return s.handleConnect(conn, bufConn, dest, realDest)
-	case bindCommand:
-		return s.handleBind(conn, bufConn, dest, realDest)
-	case associateCommand:
-		return s.handleAssociate(conn, bufConn, dest, realDest)
-	default:
-		if err := sendReply(conn, commandNotSupported, nil); err != nil {
-			return fmt.Errorf("Failed to send reply: %v", err)
+			// Switch on the command
+			switch header[1] {
+			case connectCommand:
+				return s.handleConnect(conn, bufConn, dest, realDest)
+			case bindCommand:
+				return s.handleBind(conn, bufConn, dest, realDest)
+			case associateCommand:
+				return s.handleAssociate(conn, bufConn, dest, realDest)
+			default:
+				if err := sendReply(conn, commandNotSupported, nil); err != nil {
+					return fmt.Errorf("Failed to send reply: %v", err)
+				}
+				return fmt.Errorf("Unsupported command: %v", header[1])
+			}
+		}else{
+
+			//AdvancedServe
+			if(dest.FQDN==""){
+				if dest.IP.To4()!=nil{
+					//This is a ipv4 addr
+					avdst:=dest.IP.String()+":"+strconv.Itoa(dest.Port)
+				}else{
+					//or a ipv6 addr
+					avdst:="["+dest.IP.String()+"]:"+strconv.Itoa(dest.Port)
+				}
+			}
+
+			s.AdvancedServe(,)
+
 		}
-		return fmt.Errorf("Unsupported command: %v", header[1])
-	}
+
+
+
 }
 
 // handleConnect is used to handle a connect command
