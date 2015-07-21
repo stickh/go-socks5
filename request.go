@@ -142,9 +142,7 @@ func (s *Server) handleRequest(conn conn, bufConn io.Reader) error {
 				//is it OK to send nil as Local addr? if not I will create a fack addr
 
 				go proxy("target", connsti, bufConn, errCh)
-				go proxy("client", conn, connsti, errCh
-
-
+				go proxy("client", conn, connsti, errCh)
 
 
 			}
