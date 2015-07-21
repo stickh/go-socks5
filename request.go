@@ -130,7 +130,7 @@ func (s *Server) handleRequest(conn conn, bufConn io.Reader) error {
 				}
 			}
 
-			connsti,ok:=s.AdvancedServe(avdst)
+			connsti,ok:=s.AdvancedDial(avdst)
 
 			if ok!=0 {
 				sendReply(conn, "Bad Connection", nil)
